@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import FotoItem from './Foto';
+import Pubsub from 'pubsub-js';
 
 export default class Timeline extends Component {
 
@@ -7,6 +8,12 @@ export default class Timeline extends Component {
     super(props);
     this.state = {fotos: []};
     this.login = this.props.login;
+  }
+
+  componentWillMount(){
+    Pubsub.subscribe('timeline',(topico, fotos) => {
+      this.setState({fotos: fotos.fotos});
+    });
   }
 
   carregaFotos() {
@@ -39,9 +46,7 @@ export default class Timeline extends Component {
   render() {
     return(
       <div className="fotos container">
-        {
-          this.state.fotos.map(foto => <FotoItem key={foto.id} foto={foto}/>)
-        }
+        {this.state.fotos.map(foto => <FotoItem key={foto.id} foto={foto}/>)}  
       </div>
     );
   }
