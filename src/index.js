@@ -13,6 +13,7 @@ import * as serviceWorker from './serviceWorker';
 function verificaAutenticacao(nextState, replace) {
   const result =  matchPattern('/timeline(/:login)', nextState.location.pathname);
   const endercoPrivadoTimeLine = result.paramValues[0] === undefined;
+  
   if(endercoPrivadoTimeLine && localStorage.getItem('auth-token') === null) {
     replace('/?msg=Você precisa estar logado para acessar o endereço');
   }
