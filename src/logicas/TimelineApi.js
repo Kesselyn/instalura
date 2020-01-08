@@ -1,10 +1,4 @@
-import Pubsub from 'pubsub-js';
-
 export default class TimelineApi {
-
-  constructor(fotos) {
-    this.fotos = fotos;
-  }
   
   static lista(urlPerfil){
     return dispatch => {
@@ -17,37 +11,21 @@ export default class TimelineApi {
     }
   }
 
-  subscribe(callback) {
-    Pubsub.subscribe('timeline',(topico, fotos) => {
-      callback(fotos);
-    });
-  }
-
-  like(fotoId) {
-    fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/like?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`, {method: "POST"})
-    .then(response =>{
-      if(response.ok) {
-        return response.json();
-      } else {
-        throw new Error("Não foi possivel dar like nessa foto");
-      }
-    })
-    .then(liker => {
-      const fotoAchada = this.fotos.find(foto => foto.id === fotoId);
-      fotoAchada.likeada = !fotoAchada.likeada;
-
-      const possivelLiker = fotoAchada.likers.find(likerAtual => likerAtual.login === liker.login);
-      
-      if(possivelLiker === undefined) {
-        fotoAchada.likers.push(liker);
-      } else {
-        const novosLikers = fotoAchada.likers.filter(likerAtual => likerAtual.login !== liker.login);
-        fotoAchada.likers = novosLikers; 
-      }
-      
-      Pubsub.publish('timeline', this.fotos);
-
-    });
+  static like(fotoId) {
+    return dispatch => {
+      fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/like?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`, {method: "POST"})
+      .then(response =>{
+        if(response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Não foi possivel dar like nessa foto");
+        }
+      })
+      .then(liker => {
+        dispatch({type: 'LIKE', fotoId, liker});
+        return liker;
+      });
+    }
   }
 
   static comenta(fotoId, textoComentario) {
@@ -68,6 +46,7 @@ export default class TimelineApi {
       })
       .then(novoComentario => {
         dispatch({type:'COMENTARIO',fotoId, novoComentario});
+        return novoComentario;
       }) 
     }
   }
