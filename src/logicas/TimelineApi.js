@@ -6,12 +6,15 @@ export default class TimelineApi {
     this.fotos = fotos;
   }
   
-  static lista(urlPerfil, store) {
-    fetch(urlPerfil)
-    .then(response => response.json())
-    .then(fotos => {
-      store.dispatch({type:'LISTAGEM', fotos});
-    });
+  static lista(urlPerfil){
+    return dispatch => {
+      fetch(urlPerfil)
+      .then(response => response.json())
+      .then(fotos => {
+        dispatch({type:'LISTAGEM',fotos});
+        return fotos;
+      });
+    }
   }
 
   subscribe(callback) {
@@ -47,27 +50,25 @@ export default class TimelineApi {
     });
   }
 
-  comenta(fotoId, textoComentario) {
-    fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/comment?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`, {
-      method: "POST",
-      body: JSON.stringify({texto: textoComentario}),
-      headers: new Headers({
-        'Content-type': 'application/json'
+  static comenta(fotoId, textoComentario) {
+    return dispatch => {
+      fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/comment?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`, {
+        method: "POST",
+        body: JSON.stringify({texto: textoComentario}),
+        headers: new Headers({
+          'Content-type': 'application/json'
+        })
       })
-    })
-    .then(response => {
-      if(response.ok) {
-        return response.json();
-      } else {
-        throw new Error("Não foi possível comentar essa foto");
-      }
-    })
-    .then(novoComentario => {
-      const fotoAchada = this.fotos.find(foto => foto.id === fotoId);
-      
-      fotoAchada.comentarios.push(novoComentario);
-      Pubsub.publish('timeline', this.fotos);
-
-    });
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Não foi possível comentar essa foto");
+        }
+      })
+      .then(novoComentario => {
+        dispatch({type:'COMENTARIO',fotoId, novoComentario});
+      }) 
+    }
   }
 }
