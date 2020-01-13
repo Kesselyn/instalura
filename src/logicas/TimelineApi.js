@@ -1,4 +1,4 @@
-import { listagem, comentario, like } from '../actions/actionCreator';
+import { listagem, comentario, like, notifica } from '../actions/actionCreator';
 export default class TimelineApi {
   
   static lista(urlPerfil){
@@ -51,4 +51,23 @@ export default class TimelineApi {
       }) 
     }
   }
+
+  static pesquisa(login) {
+    return dispatch => {
+      fetch(`https://instalura-api.herokuapp.com/api/public/fotos/${login}`)
+      .then(response => response.json())
+      .then(fotos => {
+
+        if(fotos.legth === undefined) {
+          dispatch(notifica('Usuário não encontrado'));
+        } else {
+          dispatch(notifica(''));
+        }
+
+        dispatch(listagem(fotos));
+        return fotos;
+      });
+    }
+  }
+  
 }
